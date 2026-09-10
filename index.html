@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convertisseur de Ressources - Apprentissage Coranique</title>
+<style>
+ * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+ body {
+ background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+ min-height: 100vh;
+ padding: 20px;
+ }
+
+ .container {
+ max-width: 1100px;
+ margin: 0 auto;
+ background: white;
+ border-radius: 16px;
+ box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+ overflow: hidden;
+ }
+
+ .header {
+ background: linear-gradient(135deg, #1e88e5, #1565c0);
+ color: white;
+ padding: 25px;
+ text-align: center;
+ }
+
+ .header h1 {
+ font-size: 1.8em;
+ margin-bottom: 8px;
+ }
+
+ .badge {
+ display: inline-block;
+ background: rgba(255,255,255,0.2);
+ padding: 4px 12px;
+ border-radius: 20px;
+ font-size: 0.85em;
+ margin-top: 8px;
+ }
+
+ .badge .data {
+ color: #4fc3f7;
+ font-weight: bold;
+ font-size: 1.1em;
+ }
+
+ .main-content {
+ padding: 25px;
+ }
+
+ .section {
+ background: #f8f9fa;
+ border-radius: 12px;
+ padding: 20px;
+ margin-bottom: 20px;
+ border: 1px solid #e9ecef;
+ }
+
+ .section h2 {
+ color: #1565c0;
+ margin-bottom: 15px;
+ font-size: 1.2em;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ }
+
+ .upload-zone {
+ border: 3px dashed #90caf9;
+ border-radius: 12px;
+ padding: 30px;
+ text-align: center;
+ background: white;
+ cursor: pointer;
+ transition: all 0.3s;
+ }
+
+ .upload-zone:hover, .upload-zone.dragover {
+ border-color: #1565c0;
+ background: #e3f2fd;
+ }
+
+ .upload-zone input { display: none; }
+
+ .upload-icon { font-size: 3em; color: #1e88e5; margin-bottom: 10px; }
+
+ .file-info {
+ margin-top: 12px;
+ padding: 10px;
+ background: #e3f2fd;
+ border-radius: 8px;
+ font-size: 0.9em;
+ color: #0d47a1;
+ }
+
+ .btn {
+ background: #1e88e5;
+ color: white;
+ border: none;
+ padding: 12px 24px;
+ border-radius: 8px;
+ cursor: pointer;
+ font-size: 1em;
+ font-weight: 600;
+ transition: all 0.2s;
+ display: inline-flex;
+ align-items: center;
+ gap: 8px;
+ margin: 5px;
+ }
+
+ .btn:hover:not(:disabled) {
+ background: #1565c0;
+ transform: translateY(-2px);
+ }
+
+ .btn:disabled { background: #90a4ae; cursor: not-allowed; }
+
+ .btn-success { background: #43a047; }
+ .btn-success:hover:not(:disabled) { background: #2e7d32; }
+ .btn-warning { background: #fb8c00; }
+ .btn-warning:hover:not(:disabled) { background: #ef6c00; }
+ .btn-danger { background: #e53935; }
+ .btn-danger:hover:not(:disabled) { background: #c62828; }
+
+ .actions-bar {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ margin-bottom: 15px;
+ }
+
+ .library-grid {
+ display: grid;
+ grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+ gap: 15px;
+ margin-top: 15px;
+ }
+
+ .resource-card {
+ background: white;
+ border: 2px solid #e3f2fd;
+ border-radius: 12px;
+ padding: 15px;
+ transition: all 0.2s;
+ position: relative;
+ }
+
+ .resource-card:hover {
+ border-color: #1e88e5;
+ box-shadow: 0 4px 15px rgba(30,136,229,0.15);
+ transform: translateY(-2px);
+ }
+
+ .resource-icon {
+ font-size: 2.5em;
+ text-align: center;
+ margin-bottom: 10px;
+ }
+
+ .resource-title {
+ font-weight: 600;
+ color: #0d47a1;
+ margin-bottom: 6px;
+ word-break: break-word;
+ }
+
+ .resource-meta {
+ font-size: 0.8em;
+ color: #666;
+ margin-bottom: 12px;
+ }
+
+ .resource-meta span {
+ display: block;
+ margin: 2px 0;
+ }
+
+ .resource-actions {
+ display: flex;
+ gap: 5px;
+ flex-wrap: wrap;
+ }
+
+ .resource-actions button {
+ padding: 6px 12px;
+ font-size: 0.85em;
+ }
+
+ .badge-type {
+ display: inline-block;
+ padding: 3px 8px;
+ border-radius: 10px;
+ font-size: 0.7em;
+ font-weight: 600;
+ text-transform: uppercase;
+ margin-bottom: 5px;
+ }
+
+ .type-txt { background: #e8f5e9; color: #2e7d32; }
+ .type-mp3 { background: #fff3e0; color: #ef6c00; }
+ .type-mp4 { background: #fce4ec; color: #c2185b; }
+
+ .empty-state {
+ text-align: center;
+ padding: 40px;
+ color: #999;
+ }
+
+ .empty-state .icon { font-size: 4em; opacity: 0.3; }
+
+ .status-bar {
+ background: #fff3e0;
+ border-left: 4px solid #fb8c00;
+ padding: 12px 15px;
+ border-radius: 6px;
+ margin-bottom: 15px;
+ font-size: 0.9em;
+ display: none;
+ }
+
+ .status-bar.show { display: block; }
+ .status-bar.success { background: #e8f5e9; border-color: #43a047; }
+ .status-bar.error { background: #ffebee; border-color: #e53935; }
+
+ .preview-area {
+ margin-top: 12px;
+ padding: 10px;
+ background: #f5f5f5;
+ border-radius: 6px;
+ font-size: 0.85em;
+ max-height: 120px;
+ overflow: auto;
+ }
+
+ audio, video {
+ width: 100%;
+ margin-top: 10px;
+ border-radius: 6px;
+ }
+
+ .progress {
+ width: 100%;
+ height: 6px;
+ background: #e0e0e0;
+ border-radius: 3px;
+ overflow: hidden;
+ margin-top: 10px;
+ display: none;
+ }
+
+ .progress-bar {
+ height: 100%;
+ background: linear-gradient(90deg, #1e88e5, #42a5f5);
+ width: 0%;
+ transition: width 0.3s;
+ }
+
+ @media (max-width: 600px) {
+ .header h1 { font-size: 1.3em; }
+ .library-grid { grid-template-columns: 1fr; }
+ .btn { padding: 10px 15px; font-size: 0.9em; }
+ }
+</style>
+</head>
+<body>
+<div class="container">
+ <header class="header">
+ <h1>📖 Lecteur d'Apprentissage Coranique</h1>
+ <div class="badge">Système <span class="data">DATA</span> - Bibliothèque <strong>biblio</strong></div>
+ </header>
+
+ <div class="main-content">
+
+ <div id="statusBar" class="status-bar"></div>
+
+ <!-- Zone d'upload -->
+ <div class="section">
+ <h2>📤 Ajouter une ressource</h2>
+ <label for="fileInput" class="upload-zone" id="dropZone">
+ <div class="upload-icon">⬆️</div>
+ <div><strong>Cliquez ou glissez-déposez vos fichiers</strong></div>
+ <div style="color:#666;font-size:0.9em;margin-top:6px;">
+ Formats acceptés : TXT, MD, JSON, MP3, MP4
+ </div>
+ <input type="file" id="fileInput" accept=".txt,.md,.json,.mp3,.mp4,audio/*,video/*"multiple style="display:none">
+ </label>
+ <div class="progress" id="uploadProgress">
+ <div class="progress-bar" id="uploadProgressBar"></div>
+ </div>
+ </div>
+
+ <!-- Filtres et recherche -->
+ <div class="section">
+ <h2>🔍 Rechercher dans la bibliothèque</h2>
+ <div class="filters">
+ <input type="text" id="searchInput" placeholder="Rechercher par titre, contenu..." oninput="renderLibrary()">
+ <select id="filterType" onchange="renderLibrary()">
+ <option value="all">Tous les types</option>
+ <option value="text">Documents texte</option>
+ <option value="audio">Audio (MP3)</option>
+ <option value="video">Vidéo (MP4)</option>
+ <option value="json">JSON</option>
+ </select>
+ <select id="sortBy" onchange="renderLibrary()">
+ <option value="date_desc">Plus récents</option>
+ <option value="date_asc">Plus anciens</option>
+ <option value="title">Titre (A-Z)</option>
+ <option value="size">Taille</option>
+ </select>
+ </div>
+ <div class="btn-group">
+ <button class="btn btn-secondary" onclick="exportLibrary()">📥 Exporter biblio (JSON)</button>
+ <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">📤 Importer JSON</button>
+ <button class="btn btn-danger" onclick="clearLibrary()">🗑️ Vider biblio</button>
+ <input type="file" id="importInput" accept=".json" style="display:none" onchange="importLibrary(event)">
+ </div>
+ </div>
+
+ <!-- Affichage de la bibliothèque -->
+ <div class="section">
+ <h2 id="libraryTitle">📚 Bibliothèque <span style="color:#1e88e5">biblio</span> (<span id="itemCount">0</span>)</h2>
+ <div id="libraryGrid" class="library-grid"></div>
+ <div id="emptyMessage" style="text-align:center;padding:40px;color:#999;display:none;">
+ Votre bibliothèque est vide. Ajoutez des ressources ci-dessus.
+ </div>
+ </div>
+
+ </div>
+</div>
+
+<!-- Modal de visualisation -->
+<div id="viewerModal" class="modal">
+ <div class="modal-content">
+ <div class="modal-header">
+ <h3 id="viewerTitle">Titre</h3>
+ <button class="btn btn-secondary" onclick="closeViewer()">✕ Fermer</button>
+ </div>
+ <div class="modal-body" id="viewerBody"></div>
+ <div class="btn-group" id="viewerActions" style="padding:15px 20px;border-top:1px solid #eee;"></div>
+ </div>
+</div>
+
+<script>
+// =====================================================
+// BASE DE DONNÉES IndexedDB
+// =====================================================
+const DB_NAME = 'QuranLearningDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'biblio';
+const DATA_FLAG = 'data'; // Marqueur pour identifier la base
+
+let db = null;
+
+// Ouvrir / initialiser IndexedDB
+function openDB() {
+ return new Promise((resolve, reject) => {
+ const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+ request.onupgradeneeded = (e) => {
+ const database = e.target.result;
+ if (!database.objectStoreNames.contains(STORE_NAME)) {
+ const store = database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+ store.createIndex('title', 'title', { unique: false });
+ store.createIndex('type', 'type', { unique: false });
+ store.createIndex('dateAdded', 'dateAdded', { unique: false });
+ }
+ };
+
+ request.onsuccess = (e) => {
+ db = e.target.result;
+ resolve(db);
+ };
+
+ request.onerror = (e) => reject(e.target.error);
+ });
+ }
+
+// Ajouter une ressource
+function addResource(resource) {
+ return new Promise((resolve, reject) => {
+ const tx = db.transaction([STORE_NAME], 'readwrite');
+ const store = tx.objectStore(STORE_NAME);
+ const request = store.add(resource);
+ request.onsuccess = () => resolve(resource.id);
+ request.onerror = (e) => reject(e.target.error);
+ });
+ }
+
+// Récupérer toutes les ressources
+function getAllResources() {
+ return new Promise((resolve, reject) => {
+ const tx = db.transaction([STORE_NAME], 'readonly');
+ const store = tx.objectStore(STORE_NAME);
+ const request = store.getAll();
+ request.onsuccess = () => resolve(request.result);
+ request.onerror = (e) => reject(e.target.error);
+ });
+ }
+
+// Récupérer une ressource par ID
+function getResource(id) {
+ return new Promise((resolve, reject) => {
+ const tx = db.transaction([STORE_NAME], 'readonly');
+ const store = tx.objectStore(STORE_NAME);
+ const request = store.get(id);
+ request.onsuccess = () => resolve(request.result);
+ request.onerror = (e) => reject(e.target.error);
+ });
+ }
+
+// Supprimer une ressource
+function deleteResource(id) {
+ return new Promise((resolve, reject) => {
+ const tx = db.transaction([STORE_NAME], 'readwrite');
+ const store = tx.objectStore(STORE_NAME);
+ const request = store.delete(id);
+ request.onsuccess = () => resolve();
+ request.onerror = (e) => reject(e.target.error);
+ });
+ }
+
+// Vider la bibliothèque
+function clearAllResources() {
+ return new Promise((resolve, reject) => {
+ const tx = db.transaction([STORE_NAME], 'readwrite');
+ const store = tx.objectStore(STORE_NAME);
+ const request = store.clear();
+ request.onsuccess = () => resolve();
+ request.onerror = (e) => reject(e.target.error);
+ });
+ }
+
+// =====================================================
+// CONVERSION DES FICHIERS VERS JSON
+// =====================================================
+
+// Convertir un fichier en ressource JSON compatible IndexedDB
+async function fileToResource(file) {
+ const id = 'res_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+ const dateAdded = new Date().toISOString();
+
+ const extension = file.name.split('.').pop().toLowerCase();
+ let type = 'unknown';
+ let payload = {};
+ let textContent = '';
+
+ if (['txt', 'md'].includes(extension)) {
+ // Document textuel
+ type = 'text';
+ textContent = await file.text();
+ payload = {
+ content: textContent,
+ preview: textContent.substring(0, 500)
+ };
+ } else if (extension === 'mp3') {
+ // Audio MP3 -> JSON (Base64)
+ type = 'audio';
+ const buffer = await file.arrayBuffer();
+ const base64 = arrayBufferToBase64(buffer);
+ payload = {
+ data: base64,
+ mimeType: 'audio/mpeg',
+ preview: '🎵 Fichier audio MP3'
+ };
+ } else if (extension === 'mp4') {
+ // Vidéo MP4 -> JSON (Base64)
+ type = 'video';
+ const buffer = await file.arrayBuffer();
+ const base64 = arrayBufferToBase64(buffer);
+ payload = {
+ data: base64,
+ mimeType: 'video/mp4',
+ preview: '🎬 Fichier vidéo MP4'
+ };
+ } else if (extension === 'json') {
+ // JSON existant
+ type = 'json';
+ textContent = await file.text();
+ try {
+ payload = JSON.parse(textContent);
+ payload.preview = JSON.stringify(payload).substring(0, 500);
+ } catch (e) {
+ payload = { content: textContent, preview: textContent.substring(0, 500) };
+ }
+ }
+
+ return {
+ id,
+ title: file.name.replace(/\.[^/.]+$/, ''),
+ filename: file.name,
+ type,
+ extension,
+ size: file.size,
+ dateAdded,
+ mimeType: file.type || 'application/octet-stream',
+ dataFlag: DATA_FLAG,
+ ...payload
+ };
+ }
+
+// Conversion ArrayBuffer -> Base64
+function arrayBufferToBase64(buffer) {
+ let binary = '';
+ const bytes = new Uint8Array(buffer);
+ const len = bytes.byteLength;
+ for (let i = 0; i < len; i++) {
+ binary += String.fromCharCode(bytes[i]);
+ }
+ return btoa(binary);
+ }
+
+// Conversion Base64 -> Blob (pour téléchargement)
+function base64ToBlob(base64, mimeType) {
+ const binary = atob(base64);
+ const len = binary.length;
+ const bytes = new Uint8Array(len);
+ for (let i = 0; i < len; i++) {
+ bytes[i] = binary.charCodeAt(i);
+ }
+ return new Blob([bytes], { type: mimeType });
+ }
+
+// =====================================================
+// INTERFACE UTILISATEUR
+// =====================================================
+
+const statusBar = document.getElementById('statusBar');
+
+function showStatus(message, type = 'info') {
+ const colors = {
+ info: { bg: '#e3f2fd', color: '#1565c0' },
+ success: { bg: '#e8f5e9', color: '#2e7d32' },
+ error: { bg: '#ffebee', color: '#c62828' }
+ };
+ const c = colors[type] || colors.info;
+ statusBar.style.background = c.bg;
+ statusBar.style.color = c.color;
+ statusBar.style.borderLeft = `4px solid ${c.color}`;
+ statusBar.textContent = message;
+ statusBar.classList.add('show');
+ setTimeout(() => statusBar.classList.remove('show'), 4000);
+ }
+
+// Gestion de l'upload
+const fileInput = document.getElementBy```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Convertisseur & Bibliothèque Biblio</title>
+<style>
+  body {font-family: Arial, sans-serif; margin:0; padding:0; background:#fafafa;}
+  header {background:#fff; padding:10px 20px; border-bottom:1px solid #ddd; display:flex; align-items:center;}
+  header h1 {margin:0; font-size:1.2rem; color:#1565c0;}
+  header .data-tag {margin-left:auto; font-weight:bold; color:#1565c0;}
+  #statusBar {position:fixed; top:0; left:0; right:0; padding:8px 20px; font-size:0.9rem; opacity:0; transition:opacity .3s;}
+  #statusBar.show {opacity:1;}
+  main {padding:20px;}
+  .file-list {margin-top:10px;}
+  .file-item {margin-bottom:5px; font-size:0.9rem;}
+  .btn {padding:6px 12px; margin-right:5px; background:#1565c0; color:#fff; border:none; cursor:pointer;}
+  .btn:hover {background:#0d47a1;}
+  textarea {width:100%; height:200px; margin-top:10px; font-family:monospace;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Convertisseur & Bibliothèque</h1>
+  <span class="data-tag">data</span>
+</header>
+<div id="statusBar"></div>
+<main>
+  <input type="file" id="fileInput" multiple>
+  <button class="btn" id="exportBtn">Exporter DB</button>
+  <button class="btn" id="importBtn">Importer DB</button>
+  <input type="file" id="importFile" accept=".json" style="display:none;">
+  <div class="file-list" id="fileList"></div>
+  <textarea id="jsonOutput" placeholder="JSON généré apparaîtra ici…" readonly></textarea>
+</main>
+
+<script>
+/* ---------- IndexedDB ---------- */
+const DB_NAME = 'biblioDB';
+const STORE_NAME = 'resources';
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = e => {
+      const db = e.target.result;
+      db.createObjectStore(STORE_NAME, {keyPath: 'id', autoIncrement:true});
+    };
+    request.onsuccess = e => { db = e.target.result; resolve(); };
+    request.onerror = e => reject(e.target.error);
+  });
+}
+
+/* ---------- UI helpers ---------- */
+const statusBar = document.getElementById('statusBar');
+function showStatus(msg, type='info'){
+  const colors={info:'#1565c0',success:'#2e7d32',error:'#c62828'};
+  statusBar.style.background='#fff';
+  statusBar.style.color=colors[type]||colors.info;
+  statusBar.textContent=msg;
+  statusBar.classList.add('show');
+  setTimeout(()=>statusBar.classList.remove('show'),3000);
+}
+
+/* ---------- File handling ---------- */
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const jsonOutput = document.getElementById('jsonOutput');
+
+fileInput.addEventListener('change', async e => {
+  const files = Array.from(e.target.files);
+  fileList.innerHTML = '';
+  for(const f of files){
+    const li = document.createElement('div');
+    li.className='file-item';
+    li.textContent=`${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+    fileList.appendChild(li);
+  }
+  const json = await convertFilesToJSON(files);
+  jsonOutput.value = JSON.stringify(json, null, 2);
+  await storeResources(json);
+  showStatus('Conversion & sauvegarde réussies','success');
+});
+
+/* ---------- Conversion logic ---------- */
+async function convertFilesToJSON(files){
+  const result = [];
+  for(const file of files){
+    const ext = file.name.split('.').pop().toLowerCase();
+    const base64 = await fileToBase64(file);
+    const entry = {
+      filename: file.name,
+      type: file.type || 'application/octet-stream',
+      size: file.size,
+      encoding: 'base64',
+      data: base64
+    };
+    if(ext === 'txt' || ext === 'json' || ext === 'md'){
+      const text = await file.text();
+      entry.textContent = text;
+    }
+    result.push(entry);
+  }
+  return result;
+}
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const binary = reader.result;
+      const base64 = btoa(
+        new Uint8Array(binary)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      resolve(base64);
+    };
+    reader.onerror = e => reject(e);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+/* ---------- IndexedDB storage ---------- */
+async function storeResources(resources){
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  for(const res of resources){
+    await new Promise((res,rej)=>store.add(res).onsuccess=res).onerror=rej);
+  }
+  return tx.complete;
+}
+
+/* ---------- Export / Import ---------- */
+document.getElementById('exportBtn').addEventListener('click', async ()=>{
+  const all = await getAllResources();
+  const blob = new Blob([JSON.stringify(all,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='biblio_export.json'; a.click();
+  URL.revokeObjectURL(url);
+  showStatus('Base exportée','success');
+});
+
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+
+document.getElementById('importFile').addEventListener('change', async e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const text = await file.text();
+  let data;
+  try{ data = JSON.parse(text); }catch{ showStatus('Fichier JSON invalide','error'); return; }
+  const tx = db.transaction(STORE_NAME,'readwrite');
+  const store = tx.objectStore(STORE_NAME);
+  for(const item of data){
+    await new Promise((res,rej)=>store.add(item).onsuccess=res).onerror=rej);
+  }
+  showStatus('Importation réussie','success');
+});
+
+function getAllResources(){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = e => reject(e.target.error);
+  });
+}
+
+/* ---------- Init ---------- */
+openDB().then(()=>showStatus('Base prête','info')).catch(e=>showStatus('Erreur d\'ouverture DB','error'));
+</script>
+</body>
+</html>
